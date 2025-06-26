@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plano de Treino Interativo: Desafio do Mirante</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Warm Neutrals (bg-amber-50, text-stone-800, accent: amber-600) -->
+    <!-- Application Structure Plan: An interactive dashboard with phase-based navigation (tabs) to break down the 8-week plan into manageable sections. Clicking a phase displays the weekly workouts in a card-based grid. This task-oriented flow prevents information overload and focuses the user on the current training period. A progress chart provides motivation by visualizing the increasing intensity across phases. This structure is more engaging and user-friendly than a static document. -->
+    <!-- Visualization & Content Choices: Report Info: 4 training phases -> Goal: Organize -> Method: JS-powered Tabs for navigation. Report Info: Weekly workouts -> Goal: Inform -> Method: HTML/Tailwind cards for clear presentation. Report Info: Increasing incline/duration -> Goal: Show Change -> Method: Chart.js Bar Chart visualizing the main incline workout progression. Report Info: Strength exercises -> Goal: Inform -> Method: HTML list within cards. All interactions are handled with vanilla JS to update the DOM dynamically, providing an interactive planner experience. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .chart-container {
+            position: relative;
+            margin: auto;
+            height: 40vh;
+            max-height: 400px;
+            width: 100%;
+            max-width: 800px;
+        }
+        .tab.active {
+            border-color: #d97706;
+            background-color: #fffbeb;
+            color: #92400e;
+        }
+    </style>
+</head>
+<body class="bg-amber-50 text-stone-800">
+
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
+        
+        <header class="text-center mb-8">
+            <h1 class="text-3xl sm:text-4xl font-bold text-amber-900">Plano de Treino Interativo</h1>
+            <p class="text-lg text-stone-600 mt-2">Seu Guia de 8 Semanas para Conquistar o Mirante</p>
+        </header>
+
+        <section id="goal" class="bg-white rounded-xl shadow-md p-6 mb-8 border border-amber-200">
+            <h2 class="text-2xl font-bold text-amber-800 mb-4 text-center">🏁 Seu Objetivo</h2>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+                <div>
+                    <p class="text-sm text-stone-500">Distância</p>
+                    <p class="text-xl font-semibold text-amber-900">2.3 km</p>
+                </div>
+                <div>
+                    <p class="text-sm text-stone-500">Inclinação Média</p>
+                    <p class="text-xl font-semibold text-amber-900">20°</p>
+                </div>
+                <div>
+                    <p class="text-sm text-stone-500">Tempo Alvo</p>
+                    <p class="text-xl font-semibold text-amber-900">15 min</p>
+                </div>
+                <div>
+                    <p class="text-sm text-stone-500">Ritmo Necessário</p>
+                    <p class="text-xl font-semibold text-amber-900">9.2 km/h</p>
+                </div>
+            </div>
+        </section>
+
+        <main>
+            <div class="mb-8">
+                <div id="tabs-container" class="flex flex-wrap justify-center gap-2 sm:gap-4 border-b-2 border-amber-200 pb-4">
+                </div>
+            </div>
+
+            <div id="content-container">
+                <div id="phase-header" class="text-center mb-6">
+                    <h2 id="phase-title" class="text-2xl font-bold text-amber-800"></h2>
+                    <p id="phase-objective" class="text-stone-600 mt-1 max-w-2xl mx-auto"></p>
+                </div>
+                <div id="workouts-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                </div>
+            </div>
+        </main>
+
+        <section id="progress-visualization" class="bg-white rounded-xl shadow-md p-6 mt-12 border border-amber-200">
+            <h2 class="text-2xl font-bold text-amber-800 mb-4 text-center">📈 Sua Progressão de Intensidade</h2>
+            <p class="text-center text-stone-600 mb-6 max-w-3xl mx-auto">Este gráfico mostra como a intensidade do seu principal treino de inclinação aumenta ao longo das 8 semanas. Acompanhe a evolução do tempo de corrida (em minutos) e da porcentagem de inclinação a cada fase.</p>
+            <div class="chart-container">
+                <canvas id="progressChart"></canvas>
+            </div>
+        </section>
+
+        <section id="race-day-tips" class="mt-12">
+            <h2 class="text-2xl font-bold text-amber-800 mb-4 text-center">💡 Dicas Essenciais para o Dia do Desafio</h2>
+             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="bg-white rounded-lg shadow p-5">
+                    <h3 class="font-semibold text-amber-900 mb-2">Ritmo Estratégico</h3>
+                    <p class="text-stone-700 text-sm">Comece um pouco mais lento do que sua meta. A inclinação é muito exigente e um início forte demais pode esgotar suas energias rapidamente.</p>
+                </div>
+                <div class="bg-white rounded-lg shadow p-5">
+                    <h3 class="font-semibold text-amber-900 mb-2">Passada Curta e Frequente</h3>
+                    <p class="text-stone-700 text-sm">Na subida, adote passos mais curtos e com maior frequência. Isso é mais eficiente e economiza energia, além de ajudar na propulsão.</p>
+                </div>
+                <div class="bg-white rounded-lg shadow p-5">
+                    <h3 class="font-semibold text-amber-900 mb-2">Uso dos Braços</h3>
+                    <p class="text-stone-700 text-sm">Balance os braços de forma coordenada com as pernas. Eles são importantes para o equilíbrio e para auxiliar no impulso para cima.</p>
+                </div>
+                <div class="bg-white rounded-lg shadow p-5">
+                    <h3 class="font-semibold text-amber-900 mb-2">Foco Visual</h3>
+                    <p class="text-stone-700 text-sm">Olhe sempre alguns metros à frente, não diretamente para os seus pés. Isso ajuda a manter uma boa postura e a ver o caminho à frente.</p>
+                </div>
+                <div class="bg-white rounded-lg shadow p-5">
+                    <h3 class="font-semibold text-amber-900 mb-2">Respiração Consciente</h3>
+                    <p class="text-stone-700 text-sm">Mantenha uma respiração rítmica e profunda. Inspire e expire de forma controlada para otimizar o oxigênio.</p>
+                </div>
+                 <div class="bg-white rounded-lg shadow p-5">
+                    <h3 class="font-semibold text-amber-900 mb-2">Mentalidade Positiva</h3>
+                    <p class="text-stone-700 text-sm">A subida é um desafio físico e mental. Mantenha o foco, acredite no seu treino e visualize-se alcançando o topo com sucesso.</p>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <script>
+        const planData = [
+            {
+                phase: "Fase 1",
+                weeks: "Semanas 1-2",
+                title: "Construção da Base",
+                objective: "Melhorar a resistência geral e iniciar a adaptação do corpo ao esforço em inclinação.",
+                workouts: [
+                    {
+                        icon: "🏃‍♂️",
+                        title: "Corrida Contínua",
+                        description: "Corra por 15-20 minutos em ritmo confortável (7-8 km/h). Aumente 2-3 minutos a cada sessão.",
+                    },
+                    {
+                        icon: "⛰️",
+                        title: "Introdução à Inclinação",
+                        description: "Na esteira, intercale 2 min correndo (6-7 km/h, 5-7% inclinação) com 2 min caminhando (0% inclinação). Repita 4-5 vezes.",
+                    },
+                    {
+                        icon: "🏋️‍♂️",
+                        title: "Força Geral",
+                        description: "3 séries de 10-15 repetições: Agachamento, Afundo, Elevação de Panturrilha, Prancha (30-60 seg).",
+                    }
+                ]
+            },
+            {
+                phase: "Fase 2",
+                weeks: "Semanas 3-4",
+                title: "Aumento da Intensidade",
+                objective: "Aumentar o tempo e a intensidade na inclinação, fortalecendo a musculatura específica para subidas.",
+                workouts: [
+                    {
+                        icon: "🏃‍♂️",
+                        title: "Corrida Contínua",
+                        description: "Corra por 25-30 minutos em ritmo constante. Se sentir bem, aumente a velocidade para 8-8.5 km/h em alguns trechos.",
+                    },
+                    {
+                        icon: "⛰️",
+                        title: "Progressão de Inclinação",
+                        description: "Na esteira, corra por 3-4 minutos (6-7 km/h, 8-10% inclinação), descanse 1 min caminhando (plano). Repita 4-5 vezes.",
+                    },
+                    {
+                        icon: "🏋️‍♂️",
+                        title: "Força Específica",
+                        description: "3 séries de 8-12 repetições: Agachamento Búlgaro, Elevação de Panturrilha Unilateral, Ponte de Glúteos, Step-ups.",
+                    }
+                ]
+            },
+            {
+                phase: "Fase 3",
+                weeks: "Semanas 5-6",
+                title: "Ritmo e Simulação",
+                objective: "Ajustar o ritmo para a meta de 15 minutos e simular as condições reais de inclinação do mirante.",
+                workouts: [
+                    {
+                        icon: "🏃‍♂️💨",
+                        title: "Corrida de Ritmo",
+                        description: "Corra por 30 min, com os 10 min centrais em ritmo mais intenso (ex: 9 km/h ou um ritmo forte e sustentável).",
+                    },
+                    {
+                        icon: "⛰️🔥",
+                        title: "Simulação Real",
+                        description: "Na esteira, corra 5-7 minutos (5-6 km/h, 15-18% inclinação), descanse 2-3 min caminhando (plano). Repita 2-3 vezes.",
+                    },
+                    {
+                        icon: "🏋️‍♂️⚡",
+                        title: "Intervalos em Subida",
+                        description: "Na esteira (10-12% inclinação), corra 1 min rápido, descanse 1 min caminhando. Repita 8-10 vezes.",
+                    }
+                ]
+            },
+            {
+                phase: "Fase 4",
+                weeks: "Semanas 7-8",
+                title: "Polimento e Redução",
+                objective: "Refinar o ritmo final, garantir o descanso adequado e preparar o corpo para o máximo desempenho no dia do desafio.",
+                workouts: [
+                    {
+                        icon: "🏃‍♂️",
+                        title: "Corrida de Manutenção",
+                        description: "Corra por 20-25 minutos em um ritmo moderado e confortável para manter o condicionamento sem fadiga.",
+                    },
+                    {
+                        icon: "⛰️🎯",
+                        title: "Teste de Ritmo Final",
+                        description: "Na esteira, tente correr 10-12 min com 20% de inclinação na velocidade alvo (aprox. 9.2 km/h). Observe seu corpo.",
+                    },
+                    {
+                        icon: "🧘‍♂️",
+                        title: "Descanso Ativo / Taper",
+                        description: "Faça apenas treinos leves no início da semana. Reduza o volume para recuperar o corpo e encher as reservas de energia.",
+                    }
+                ]
+            }
+        ];
+
+        const tabsContainer = document.getElementById('tabs-container');
+        const phaseTitle = document.getElementById('phase-title');
+        const phaseObjective = document.getElementById('phase-objective');
+        const workoutsGrid = document.getElementById('workouts-grid');
+
+        function displayPhase(phaseIndex) {
+            const phase = planData[phaseIndex];
+            
+            phaseTitle.textContent = `${phase.phase}: ${phase.title} (${phase.weeks})`;
+            phaseObjective.textContent = phase.objective;
+
+            workoutsGrid.innerHTML = '';
+            phase.workouts.forEach(workout => {
+                const workoutCard = `
+                    <div class="bg-white rounded-xl shadow-md p-6 border border-amber-200 hover:shadow-lg hover:border-amber-400 transition-all duration-300 flex flex-col">
+                        <div class="text-3xl mb-4">${workout.icon}</div>
+                        <h3 class="text-xl font-semibold text-amber-900 mb-2">${workout.title}</h3>
+                        <p class="text-stone-700 text-sm flex-grow">${workout.description}</p>
+                    </div>
+                `;
+                workoutsGrid.innerHTML += workoutCard;
+            });
+            
+            document.querySelectorAll('.tab').forEach((tab, index) => {
+                if (index === phaseIndex) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+        }
+
+        function createTabs() {
+            planData.forEach((phase, index) => {
+                const tab = document.createElement('button');
+                tab.className = 'tab px-4 py-2 text-sm sm:text-base font-semibold rounded-t-lg border-b-4 border-transparent transition-colors duration-300';
+                tab.textContent = `${phase.phase} (${phase.weeks})`;
+                tab.onclick = () => displayPhase(index);
+                tabsContainer.appendChild(tab);
+            });
+        }
+
+        window.onload = function() {
+            createTabs();
+            displayPhase(0);
+
+            const ctx = document.getElementById('progressChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Fase 1 (S 1-2)', 'Fase 2 (S 3-4)', 'Fase 3 (S 5-6)', 'Fase 4 (S 7-8)'],
+                    datasets: [
+                        {
+                            label: 'Tempo de Corrida (min)',
+                            data: [2, 4, 7, 12],
+                            backgroundColor: 'rgba(217, 119, 6, 0.6)',
+                            borderColor: 'rgba(217, 119, 6, 1)',
+                            borderWidth: 1,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Inclinação Média (%)',
+                            data: [7, 10, 18, 20],
+                            backgroundColor: 'rgba(120, 113, 108, 0.6)',
+                            borderColor: 'rgba(120, 113, 108, 1)',
+                            borderWidth: 1,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Minutos'
+                            },
+                            beginAtZero: true
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Inclinação %'
+                            },
+                            grid: {
+                                drawOnChartArea: false, 
+                            },
+                            beginAtZero: true
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += context.parsed.y + (context.dataset.label.includes('Tempo') ? ' min' : '%');
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        };
+    </script>
+
+</body>
+</html>
